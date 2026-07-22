@@ -1,0 +1,29 @@
+# ── Sensitive & Local Files ──────────────────────
+.env
+.env.local
+.env.production
+
+# ── Test & Debug scripts ─────────────────────────
+test_api.php
+setup_db.php
+
+# ── OS junk ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor configs ───────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ────────────────────────────────────────
+*.log
+logs/
+
+# ── Dependency managers (if ever added) ─────────
+vendor/
+node_modules/
+composer.lock
