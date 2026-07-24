@@ -6,11 +6,6 @@
 // ──────────────────────────────────────────────
 session_start();
 
-/**
- * Load .env file manually (no Composer needed).
- * On Railway the env vars are already injected, so
- * the .env file won't exist and this is safely skipped.
- */
 $envFile = __DIR__ . '/.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -29,11 +24,12 @@ if (file_exists($envFile)) {
     }
 }
 
-// ── DB credentials ──────────────────────────────
-$servername = getenv('DB_HOST')     ?: 'localhost';
-$username   = getenv('DB_USER')     ?: 'root';
-$password   = getenv('DB_PASSWORD') ?: '';
-$dbname     = getenv('DB_NAME')     ?: 'lexio';
+// ── DB credentials (Supports Railway Native Vars) ──
+$servername = getenv('MYSQLHOST')     ?: getenv('DB_HOST')     ?: 'localhost';
+$port       = getenv('MYSQLPORT')     ?: getenv('DB_PORT')     ?: '3306';
+$username   = getenv('MYSQLUSER')     ?: getenv('DB_USER')     ?: 'root';
+$password   = getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '';
+$dbname     = getenv('MYSQLDATABASE') ?: getenv('DB_NAME')     ?: 'lexio';
 
 // ── Gemini API key ──────────────────────────────
 $gemini_api_key = getenv('GEMINI_API_KEY') ?: '';
@@ -41,7 +37,7 @@ $gemini_api_key = getenv('GEMINI_API_KEY') ?: '';
 // ── Database connection ─────────────────────────
 try {
     $conn = new PDO(
-        "mysql:host=$servername;dbname=$dbname;charset=utf8mb4",
+        "mysql:host=$servername;port=$port;dbname=$dbname;charset=utf8mb4",
         $username,
         $password
     );
