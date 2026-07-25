@@ -25,14 +25,18 @@ Options -Indexes
     </IfModule>
 </FilesMatch>
 
-# ── Block PHP execution in any future uploads/ folder ───
+# ── URL rules ────────────────────────────────────────────
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct access to test_api.php from outside
+    # Allow health.php through unconditionally (Railway health checks)
+    RewriteRule ^health\.php$ - [L]
+
+    # Block direct access to test_api.php
     RewriteRule ^test_api\.php$ - [F,L]
 
     # Redirect HTTP → HTTPS in production (Railway sets X-Forwarded-Proto)
+    # Skips health.php (already handled above), localhost, and direct IPs
     RewriteCond %{HTTP:X-Forwarded-Proto} =http
     RewriteCond %{HTTP_HOST} !^localhost
     RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
