@@ -2,10 +2,11 @@
 .env
 .env.local
 .env.production
+.env.staging
 
 # ── Test & Debug scripts ─────────────────────────
 test_api.php
-setup_db.php
+phpinfo.php
 
 # ── OS junk ─────────────────────────────────────
 .DS_Store
@@ -27,3 +28,8 @@ logs/
 vendor/
 node_modules/
 composer.lock
+
+# ── Backup files ────────────────────────────────
+*.bak
+*.orig
+*.tmp

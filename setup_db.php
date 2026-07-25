@@ -1,10 +1,30 @@
 <?php
-// ─────────────────────────────────────────────
-//  setup_db.php — Run ONCE after deployment
-//  Visit: https://your-domain/setup_db.php
-//  Then DELETE or rename this file for security
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+//  setup_db.php — Token-gated database initialiser
+//
+//  Run ONCE after first deployment:
+//    https://your-app.railway.app/setup_db.php?token=YOUR_SETUP_TOKEN
+//
+//  How to use safely on Railway:
+//  1. Set SETUP_TOKEN=<any-random-string> in Railway Variables
+//  2. Visit the URL above with that token
+//  3. Remove SETUP_TOKEN from Railway Variables when done
+// ─────────────────────────────────────────────────────
 
+// ── Token gate — MUST pass before anything runs ──
+$setupToken = getenv('SETUP_TOKEN') ?: '';
+$provided   = $_GET['token'] ?? '';
+
+if ($setupToken === '' || $provided === '' || !hash_equals($setupToken, $provided)) {
+    http_response_code(403);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Forbidden. Missing or invalid setup token.']);
+    exit;
+}
+
+header('Content-Type: application/json');
+
+// ── Load .env (local dev) ──
 $envFile = __DIR__ . '/.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -18,7 +38,7 @@ if (file_exists($envFile)) {
     }
 }
 
-// ── DB credentials (Supports Railway Native Vars) ──
+// ── DB credentials ──
 $host   = getenv('MYSQLHOST')     ?: getenv('DB_HOST')     ?: 'localhost';
 $port   = getenv('MYSQLPORT')     ?: getenv('DB_PORT')     ?: '3306';
 $user   = getenv('MYSQLUSER')     ?: getenv('DB_USER')     ?: 'root';
@@ -35,12 +55,12 @@ try {
 
     // Users table
     $conn->exec("CREATE TABLE IF NOT EXISTS users (
-        id           INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        first_name   VARCHAR(50)  NOT NULL,
-        last_name    VARCHAR(50)  NOT NULL,
-        email        VARCHAR(100) NOT NULL UNIQUE,
+        id            INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        first_name    VARCHAR(50)  NOT NULL,
+        last_name     VARCHAR(50)  NOT NULL,
+        email         VARCHAR(100) NOT NULL UNIQUE,
         password_hash VARCHAR(255) NOT NULL,
-        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
 
     // Emails table
@@ -58,7 +78,10 @@ try {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
-    echo json_encode(['success' => true, 'message' => 'Database and tables set up successfully. Please delete or protect this file now.']);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Database and tables set up successfully. Remove SETUP_TOKEN from your environment variables now.'
+    ]);
 
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Setup failed: ' . $e->getMessage()]);

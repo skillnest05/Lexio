@@ -1,108 +1,117 @@
-# Lexio — AI Email Draft Helper
+# ✦ Lexio — AI Email Drafting Assistant
 
-Lexio is an AI-powered email drafting tool built with PHP, MySQL, Bootstrap 5, and the Google Gemini API.
+> Draft professional, casual, or persuasive emails in seconds using Google Gemini AI.
 
----
-
-## Tech Stack
-- **Backend**: PHP 8.2
-- **Database**: MySQL
-- **Frontend**: HTML, Bootstrap 5, Vanilla JS
-- **AI**: Google Gemini API (`gemini-flash-latest`)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template)
 
 ---
 
-## Local Development (XAMPP)
+## 🚀 Deploy on Railway
 
-1. Clone/copy the project into `C:\xampp\htdocs\lexio`
-2. Copy `.env.example` to `.env` and fill in your values
-3. Start Apache and MySQL in XAMPP
-4. Visit `http://localhost/lexio/setup_db.php` once to create the database
-5. Go to `http://localhost/lexio`
+### Prerequisites
+- A [Railway](https://railway.app) account
+- A [Google Gemini API key](https://aistudio.google.com/app/apikey) (free)
+- This repo pushed to GitHub
 
----
+### Step-by-step
 
-## Deploy to Railway
+1. **Create a new Railway project** → "Deploy from GitHub repo" → select this repo
 
-### Step 1 — Push to GitHub
-```bash
-cd C:\xampp\htdocs\lexio
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/lexio.git
-git push -u origin main
-```
+2. **Add MySQL plugin**
+   - In your Railway project → "+ New" → "Database" → "MySQL"
+   - Railway auto-injects `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`
 
-### Step 2 — Create Railway Project
-1. Go to [railway.app](https://railway.app) → **New Project**
-2. Choose **Deploy from GitHub repo** → select your `lexio` repo
-3. Railway will auto-detect PHP via Nixpacks
+3. **Set environment variables** in Railway → your service → "Variables":
 
-### Step 3 — Add MySQL Database
-1. In your Railway project dashboard, click **+ New** → **Database** → **MySQL**
-2. Railway will provision a MySQL instance automatically
+   | Variable | Value |
+   |---|---|
+   | `GEMINI_API_KEY` | Your Gemini API key |
+   | `APP_ENV` | `production` |
+   | `SETUP_TOKEN` | Any random secret (e.g. `openssl rand -hex 16`) |
 
-### Step 4 — Set Environment Variables
-In Railway → your PHP service → **Variables** tab, add:
+4. **Deploy** — Railway builds the Docker image automatically
 
-| Variable | Value |
-|---|---|
-| `DB_HOST` | (from Railway MySQL → `MYSQLHOST`) |
-| `DB_USER` | (from Railway MySQL → `MYSQLUSER`) |
-| `DB_PASSWORD` | (from Railway MySQL → `MYSQLPASSWORD`) |
-| `DB_NAME` | `lexio` |
-| `GEMINI_API_KEY` | your Gemini API key |
+5. **Initialise the database** — visit:
+   ```
+   https://your-app.railway.app/setup_db.php?token=YOUR_SETUP_TOKEN
+   ```
+   You should see: `{"success":true,"message":"Database and tables set up successfully..."}`
 
-> **Tip:** Railway auto-exposes MySQL variables. You can reference them directly as `${{MySQL.MYSQLHOST}}` etc.
+6. **Remove `SETUP_TOKEN`** from Railway Variables — this locks `setup_db.php` permanently
 
-### Step 5 — Initialize the Database
-After deployment, visit:
-```
-https://your-railway-domain.up.railway.app/setup_db.php
-```
-You should see: `{"success":true,"message":"Database and tables set up successfully..."}`
-
-> ⚠️ **Delete or rename `setup_db.php`** after running it once for security.
-
-### Step 6 — Done!
-Visit your Railway app URL and start drafting emails.
+7. **Done!** Visit your Railway URL and register your first account.
 
 ---
 
-## Deployment Platform Comparison
+## 💻 Local Development (XAMPP)
 
-| Feature | Railway ✅ | Render ✅ | Vercel ❌ |
-|---|---|---|---|
-| PHP Support | Native (Nixpacks) | Via Docker | ❌ Not supported |
-| MySQL | Built-in plugin | Managed DB (paid) | ❌ Not supported |
-| Free Tier | $5 credit/month | 750 hrs/month | N/A for PHP |
-| Setup Difficulty | Easy | Medium (needs Docker) | Not recommended |
-| **Best For Lexio** | ✅ Yes | ✅ Yes (with Dockerfile) | ❌ No |
+1. Clone the repo into `xampp/htdocs/lexio`
+2. Copy `.env.example` → `.env` and fill in your values
+3. Start Apache + MySQL in XAMPP
+4. Visit `http://localhost/lexio/setup_db.php` to create tables
+5. Visit `http://localhost/lexio/`
 
 ---
 
-## Project Structure
+## 🗂️ Project Structure
 
 ```
 lexio/
+├── index.php              ← Login / Register
+├── dashboard.php          ← Main app (auth-protected)
+├── config.php             ← DB + Gemini config
+├── setup_db.php           ← Token-gated DB initialiser
+├── .htaccess              ← Security headers + HTTPS redirect
+├── Dockerfile             ← PHP 8.2 Apache image for Railway
+├── railway.json           ← Railway deploy config
+├── .env.example           ← Environment variable reference
 ├── api/
-│   ├── auth.php            # Login / Register / Logout
-│   ├── generate_email.php  # Gemini API integration
-│   └── fetch_history.php   # Load past drafts
-├── css/
-│   └── style.css
-├── js/
-│   └── app.js
-├── config.php              # DB connection + env loader
-├── index.php               # Sign In / Sign Up page
-├── dashboard.php           # Main email drafting UI
-├── setup_db.php            # Run once to create tables
-├── .env                    # ← NOT committed (gitignored)
-├── .env.example            # ← Committed (safe template)
-├── .gitignore
-├── Dockerfile              # For Docker-based deployments
-├── docker-entrypoint.sh    # Handles Railway's dynamic PORT
-├── nixpacks.toml           # Railway Nixpacks config
-└── railway.json            # Railway project config
+│   ├── auth.php           ← Login / Register / Logout API
+│   ├── generate_email.php ← Gemini AI email generation
+│   └── fetch_history.php  ← Email draft history
+├── css/style.css          ← Custom styles
+└── js/app.js              ← Frontend logic
 ```
+
+---
+
+## 🔑 Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `GEMINI_API_KEY` | ✅ | Google Gemini API key |
+| `APP_ENV` | ✅ | `local` or `production` |
+| `MYSQLHOST` | ✅ (Railway) | Auto-injected by MySQL plugin |
+| `MYSQLPORT` | ✅ (Railway) | Auto-injected by MySQL plugin |
+| `MYSQLUSER` | ✅ (Railway) | Auto-injected by MySQL plugin |
+| `MYSQLPASSWORD` | ✅ (Railway) | Auto-injected by MySQL plugin |
+| `MYSQLDATABASE` | ✅ (Railway) | Auto-injected by MySQL plugin |
+| `DB_HOST` | ✅ (local) | `localhost` for XAMPP |
+| `DB_USER` | ✅ (local) | `root` for XAMPP |
+| `DB_PASSWORD` | ✅ (local) | Empty for XAMPP default |
+| `DB_NAME` | ✅ (local) | `lexio` |
+| `SETUP_TOKEN` | ⚠️ One-time | Token to gate `setup_db.php` |
+
+---
+
+## 🛡️ Security
+
+- Session cookies: `HttpOnly`, `SameSite=Lax`, `Secure` (production only)
+- Passwords hashed with `bcrypt` (`password_hash` / `password_verify`)
+- All SQL via PDO prepared statements — no SQL injection possible
+- `.env` excluded from git, never committed
+- `setup_db.php` token-gated — returns 403 without valid token
+- `.htaccess` blocks direct access to `.env`, `Dockerfile`, `README.md`, etc.
+- Automatic HTTP → HTTPS redirect on Railway
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Backend | PHP 8.2 |
+| Database | MySQL (PDO) |
+| AI | Google Gemini Flash |
+| Frontend | HTML5, Vanilla JS, Bootstrap 5.3 |
+| Hosting | Railway (Docker) |
