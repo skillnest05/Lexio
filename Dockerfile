@@ -7,11 +7,21 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql mysqli curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ── Fix MPM conflict ─────────────────────────────────────
-# php:8.2-apache requires mpm_prefork (mod_php is not thread-safe).
-# mpm_event gets auto-loaded on some builds — disable it explicitly.
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork rewrite headers
+# ── Force ONLY mpm_prefork ───────────────────────────────
+# Directly delete ALL mpm_* symlinks from mods-enabled (a2dismod is
+# unreliable in php:apache images — this is the nuclear, guaranteed fix).
+# Then re-link only mpm_prefork (required by mod_php — not thread-safe).
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_prefork.load \
+          /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.load \
+              /etc/apache2/mods-enabled/mpm_prefork.load \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.conf \
+              /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && a2enmod rewrite headers
 
 # Copy project files into the web root
 COPY . /var/www/html/
