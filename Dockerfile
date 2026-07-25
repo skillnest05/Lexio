@@ -7,8 +7,11 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql mysqli curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache modules
-RUN a2enmod rewrite headers
+# ── Fix MPM conflict ─────────────────────────────────────
+# php:8.2-apache requires mpm_prefork (mod_php is not thread-safe).
+# mpm_event gets auto-loaded on some builds — disable it explicitly.
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
+    && a2enmod mpm_prefork rewrite headers
 
 # Copy project files into the web root
 COPY . /var/www/html/
